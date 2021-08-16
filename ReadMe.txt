@@ -31,3 +31,6 @@ Cross Cutting Concerns
 
 
 	Örneðin loglamak istiyorusunuz, uygulama hata verdiðinde çalýþmasýný istediðin kodlar varsa onu AOP sayesinde yapýyoruz bu yönteme interceptors deniyor.
+
+
+	Ýþ kurallarýný
