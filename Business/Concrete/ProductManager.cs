@@ -1,35 +1,33 @@
 ﻿using Business.Abstract;
-using Business.CCS;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Validation;
-using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Business;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.DTOs;
-using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Business.Concrete
 {
-    public class ProductManager : IProductService
+    public class ProductManager : IProductService // Bir entity manager kendi Dal'ı hariç başka bir dalı enjekte edemez
     {
-        IProductDal _productDal;
-
-        public ProductManager(IProductDal productDal)
+        readonly IProductDal _productDal;
+        readonly ICategoryService _categoryService; // microservice
+        public ProductManager(IProductDal productDal, ICategoryService categoryService)
         {
             _productDal = productDal;
+            _categoryService = categoryService;
         }
 
+        //[SecuredOperation("product.add, admin")]
         [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {
-            IResult result = BusinessRules.Run(CheckIfProductCauntOfCategory(product.CategoryId),
+            IResult result = BusinessRules.Run(CheckIfProductCountOfCategory(product.CategoryId),
                 CheckIfProductNameExists(product.ProductName));
 
             if (result!=null)           
@@ -79,11 +77,11 @@ namespace Business.Concrete
             throw new NotImplementedException();
         }
 
-        private IResult CheckIfProductCauntOfCategory(int categoryId)
+        private IResult CheckIfProductCountOfCategory(int categoryId)
         {
             var result = _productDal.GetAll(p => p.CategoryId == categoryId).Count;
-            if (result >= 10)
-            {
+            if (result >= 15)
+            {          
                 return new ErrorResult(Messages.ProductCountOfCategoryError);
             }
             return new SuccessResult();
@@ -95,6 +93,15 @@ namespace Business.Concrete
             if (result)
             {
                 return new ErrorResult(Messages.ProductNameAlreadyExists);
+            }
+            return new SuccessResult();
+        }
+        private IResult CheckIfCategoryLimitExceeded()
+        {
+            var result = _categoryService.GetAll();
+            if (result.Data.Count>15)
+            {
+                return new ErrorResult(Messages.CategoryLimitExceeded);
             }
             return new SuccessResult();
         }

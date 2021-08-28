@@ -24,9 +24,12 @@ namespace Core.Aspects.Autofac.Validation
         }
         protected override void OnBefore(IInvocation invocation)
         {
-            var validator = (IValidator)Activator.CreateInstance(_validatorType); //reflection çalışma anında birşeyleri çalıştırmanızı sağlıyor. Mesela newleme işini çalışma anında yapmak istiyorsunuz. CreateInstance sayesinde instance oluştur. //_validatorType'un çalışma tipini bul diyor
+            var validator = (IValidator)Activator.CreateInstance(_validatorType); //reflection çalışma anında birşeyleri çalıştırmanızı sağlıyor. Mesela newleme işini çalışma anında yapmak istiyorsunuz. CreateInstance sayesinde instance oluştur.
+
             var entityType = _validatorType.BaseType.GetGenericArguments()[0]; //_validatorType'un çalışma tipini bul diyor
+
             var entities = invocation.Arguments.Where(t => t.GetType() == entityType); // şimdi de parametrelerini bul
+
             foreach (var entity in entities) // herbirini gez, birden fazla parametre olabilir.
             {
                 ValidationTool.Validate(validator, entity); // ValidationTool'u kullanarak validate et
